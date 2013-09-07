@@ -183,29 +183,18 @@ function _vkxp_get_node_images($node) {
   // Load image amount that should be sent to VK.
   $image_amount = variable_get('vkxp_node_image_limit_' . $node->type, 0);
   if ($image_amount) {
-
-    // Get node field name that contains image.
-    $field = variable_get('vkxp_node_image_field_' . $node->type, 0);
-
-    // Try to get images from node object.
     $i = 0;
-    $items = field_get_items('node', $node, $field);
-    if (!empty($items) && is_array($items)) {
-      $images = array();
-      foreach ($items as $image) {
-        if (isset($image['fid'])) {
+    $body = $node->body['und'][0]['value'];
+    preg_match_all( '/src="([^"]*)"/i', $body, $array ) ;
+    $images = array();
 
-          // If user set image limit we should check get only selected amount of images.
-          if ($i++ == $image_amount) {
-            break;
-          }
-
-          // Get real image path.
-          $uri = file_load($image['fid'])->uri;
-          $images[] = '@' . drupal_realpath($uri);
-        }
+    foreach ($array[1] as $img_url){
+      $images[] = preg_replace('/http:\/\/www\.endurast\.ru/i', '@/var/www/endurast/public', $img_url);
+      if ($i++ == $image_amount){
+        break;
       }
     }
+  
 
     // Upload images to vk server.
     if (!empty($images)) {
